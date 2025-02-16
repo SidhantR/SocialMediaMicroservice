@@ -23,7 +23,7 @@ module.exports = {
                 })
             }
             const {email, password, username} = req.body
-
+            
             let user = await User.findOne({$or: [{email}, {username}]})
             if(user){
                 logger.warn('User already exists')

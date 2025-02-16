@@ -16,9 +16,9 @@ const PORT = process.env.PORT || 3001
 
 // connect to db
 mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => logger.info('Db Connected'))
-    .catch((e) => console.log('Mongo connection error', e))
+.connect(process.env.MONGO_URI)
+.then(() => logger.info('Db Connected'))
+.catch((e) => logger.error('Mongo connection error', e))
 
 //redis
 const redisClient = new Redis(process.env.REDIS)
