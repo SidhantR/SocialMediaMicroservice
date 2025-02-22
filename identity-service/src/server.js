@@ -51,8 +51,8 @@ app.use((req, res, next) => {
 
 // Ip based rate limiting for sensetive endpoint
 const sensetiveEndpointsLimiter = rateLimit({
-    windowMs: 15*60*1000,
-    max: 50,
+    windowMs: 15*60*1000,  //_ min
+    max: 50,               // _ request per window
     standardHeaders: true,  // include standard info in response header
     legacyHeaders: false,
     handler: (req,res) => {
