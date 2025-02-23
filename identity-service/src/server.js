@@ -21,7 +21,7 @@ mongoose
 .catch((e) => logger.error('Mongo connection error', e)) 
 
 //redis
-const redisClient = new Redis(process.env.REDIS)
+const redisClient = new Redis(process.env.REDIS_URL)
 
 //middleware
 app.use(helmet())
