@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const logger = require('../utils/logger');
+const { invalidatePostCache } = require('../utils/utility');
 const { validateCreatePost } = require('../utils/validation');
 
 module.exports = {
@@ -20,9 +21,11 @@ module.exports = {
                 content,
                 mediaIds: mediaIds || []
             })
-            console.log(newlyCreatedPost,'newlyCreatedPost');
-            
             await newlyCreatedPost.save()
+
+            // deleting cache while new post is added
+            await invalidatePostCache(req, newlyCreatedPost._id.toString())
+
             logger.info('Post created succesfully')
             res.status(201).json({
                 status: true,
@@ -33,6 +36,43 @@ module.exports = {
             res.status(500).json({
                 success: false,
                 message: 'Error Creating post'
+            })
+        }
+    },
+    getAllPost : async(req,res) => {
+        logger.info('Get all posts endoint hit...')
+        try{
+            const page = req.query.page || 1;
+            const limit = req.query.limit || 10;
+            const startIndex = (page -1) * 10
+
+            const cacheKey = `posts:${page}:${limit}`
+
+            // fetching from cache - if present returning it
+            const cachedPosts = await req.redisClient.get(cacheKey);
+            if(cachedPosts){
+                res.json(JSON.parse(cachedPosts))
+            }
+
+            const posts = await Post.find({}).sort({createdAt: -1}).skip(startIndex).limit(limit)
+            const totalNoOfPost = await Post.countDocuments()
+
+            const result = {
+                posts,
+                currentPage: page,
+                totalPages: Math.ceil(totalNoOfPost/limit),
+                totalPost: totalNoOfPost
+            }
+
+            // save posts in redis cache - 5min
+            await req.redisClient.setex(cacheKey, 300, JSON.stringify(result))
+
+            res.json(result)
+        }catch(err){
+            logger.error('Error getting all posts', err)
+            res.status(500).json({
+                success: false,
+                message: 'Error getting all posts'
             })
         }
     }

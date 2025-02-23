@@ -1,5 +1,5 @@
 const express = require('express')
-const { createPost}  = require('../controllers/post-controller')
+const { createPost, getAllPost}  = require('../controllers/post-controller')
 const {authenticateRequest} = require('../middlewares/authMiddleware')
 
 const router = express.Router()
@@ -8,5 +8,6 @@ const router = express.Router()
 router.use(authenticateRequest)
 
 router.post('/create-post', createPost)
+router.get('/posts', getAllPost)
 
 module.exports = router;
