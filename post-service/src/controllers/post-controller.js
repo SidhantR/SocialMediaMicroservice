@@ -75,6 +75,34 @@ module.exports = {
                 message: 'Error getting all posts'
             })
         }
-    }
+    },
+    getPost : async(req,res) => {
+        logger.info('Get single post endoint hit...')
+        try{
+            const postId = req.params.id;
+            const cacheKey = `post:${postId}`;
+            const cachedPost = await req.redisClient.get(cacheKey)
+            if(cachedPost){
+                res.json(JSON.parse(cachedPost))
+            }
+
+            const singlePostDetailsById = await Post.findById(postId);
+            if(!singlePostDetailsById){
+                return res.status(404).json({
+                    success: false,
+                    message: 'Post not found'
+                })
+            }
+
+            await req.redisClient.setex(cacheKey, 3600, JSON.stringify(singlePostDetailsById))
+            res.json(singlePostDetailsById)
+        }catch(err){
+            logger.error('Error getting all posts', err)
+            res.status(500).json({
+                success: false,
+                message: 'Error getting all posts'
+            })
+        }
+    },
 }
 
