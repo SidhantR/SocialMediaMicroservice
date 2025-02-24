@@ -104,5 +104,28 @@ module.exports = {
             })
         }
     },
+    deletePost: async(req,res) => {
+        logger.info('Delete endpoint hit ...')
+        try{
+            const post = await Post.findByIdAndDelete({
+                _id: req.params.id,
+                user: req.user.userId
+            })
+            if(!post){
+                return res.json({
+                    success: false,
+                    message: 'Post not found'
+                })
+            }
+            // invalidate cache
+            await invalidatePostCache(req, req.params.id)
+            res.json({
+                success: true,
+                message: 'Post deleted successfully'
+            })
+        }catch(err){
+
+        }
+    }
 }
 
