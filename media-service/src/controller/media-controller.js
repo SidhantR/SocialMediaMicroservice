@@ -13,7 +13,6 @@ module.exports = {
 
             const cloudinaryUploadResult = await uploadMediaToCloudinary(req.file)
             logger.info(`Cloudinary upload successfull , Public ID : ${cloudinaryUploadResult.public_id}`)
-            console.log(cloudinaryUploadResult, 'cloudinaryUploadResult')
             const newlyCreatedMedia = new Media({
                 publicId: cloudinaryUploadResult.public_id,
                 originalName: originalname,
