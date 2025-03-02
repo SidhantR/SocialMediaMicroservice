@@ -24,6 +24,13 @@ module.exports = {
             })
             await newlyCreatedPost.save()
 
+            await publishEvent('post:created', {
+                postId: newlyCreatedPost._id.toString(),
+                userId: newlyCreatedPost.user.toString(),
+                content: newlyCreatedPost.content,
+                createdAt: newlyCreatedPost.createdAt
+            })
+
             // deleting cache while new post is added
             await invalidatePostCache(req, newlyCreatedPost._id.toString())
 
@@ -132,7 +139,11 @@ module.exports = {
                 message: 'Post deleted successfully'
             })
         }catch(err){
-
+            logger.warn('Error Deleting post')
+            res.status(500).json({
+                status: false,
+                message: 'Error Deleting post'
+            })
         }
     }
 }
