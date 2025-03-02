@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const logger = require('../utils/logger');
+const { publishEvent } = require('../utils/rabbitmq');
 const { invalidatePostCache } = require('../utils/utility');
 const { validateCreatePost } = require('../utils/validation');
 
@@ -117,6 +118,13 @@ module.exports = {
                     message: 'Post not found'
                 })
             }
+            // publish post delete method
+            await publishEvent('post.deleted', {
+                postId: post._id,
+                userId: req.user.userId,
+                mediaIds: post.mediaIds
+            })
+
             // invalidate cache
             await invalidatePostCache(req, req.params.id)
             res.json({

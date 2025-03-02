@@ -34,5 +34,25 @@ module.exports = {
         }
         channel.publish(EXCHANGE_NAME, routingKey, Buffer.from(JSON.stringify(message)))
         logger.info(`Event published, ${routingKey}`)
+    },
+
+    async consumeEvent (routingKey, callback) {
+        if(!channel){
+            await connectRabbitMQ()
+        }
+        // declaring an queue
+        const q = await channel.assertQueue('', {exclusive: true})
+        // bind queue to exchange
+        await channel.bindQueue(q.queue, EXCHANGE_NAME, routingKey)
+        // consuming message
+        channel.consume(q.queue, (msg) => {
+            if(msg!== null){
+                const content = JSON.parse(msg.content.toString())
+                callback(content)
+                // remove message from queue
+                channel.ack(msg)
+            }
+        })
+        logger.info(`Subscribed to event: ${routingKey}`)
     }
 }

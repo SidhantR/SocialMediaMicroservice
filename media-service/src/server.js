@@ -13,6 +13,8 @@ const {RedisStore} = require('rate-limit-redis')
 const app = express()
 const PORT = process.env.PORT || 3004
 const Redis = require('ioredis')
+const { connectRabbitMQ, consumeEvent } = require('./utils/rabbitmq')
+const { handlePostDeleted } = require('./eventHandlers/media-event-handlers')
 
 mongoose
 .connect(process.env.MONGO_URI)
@@ -52,9 +54,22 @@ app.use('/api/media/upload', sensetiveEndpointsLimiter)
 app.use('/api/media', mediaRoutes)
 app.use(errorHandler)
 
-app.listen(PORT, ()=> {
-    logger.info(`Media service running on PORT`)
-})
+async function startServer() {
+    try{
+        await connectRabbitMQ()
+        // consume event
+        await consumeEvent('post:deleted', handlePostDeleted)
+        app.listen(PORT, ()=> {
+            logger.info(`Media service running on PORT`)
+        })
+    } catch(err){
+        logger.error('Failed to connect to server', err)
+        //stops the Node.js process
+        process.exit(1)
+    }
+    
+}
+startServer()
 
 //unhandled promise rejection
 process.on('unhandledRejection', (reason, promise) => {

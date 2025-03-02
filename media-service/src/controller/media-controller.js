@@ -36,5 +36,17 @@ module.exports = {
                 message: 'Error Upoading Media'
             })
         }
+    },
+    getAllMedia: async (req,res) => {
+        try{
+            const results = await Media.find()
+            res.json(results)
+        } catch(err){
+            logger.error('Error fetching all media', err)
+            res.status(500).json({
+                success: false,
+                message: 'Error fetching all media'
+            })
+        }
     }
 }
